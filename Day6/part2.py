@@ -52,11 +52,11 @@ def walk_maze(start_pos, overrides=None):
         steps_before_walk = len(traveled)
         last_walkable_path_pos = walk_path(maze, path, overrides, traveled)
         if last_walkable_path_pos == -1:
-            return True
+            return True, traveled
         if len(traveled) == steps_before_walk:
             retraces += 1
         if retraces > max_retraces:
-            return False
+            return False, traveled
         pos = path[last_walkable_path_pos]
         dir = (dir + 1) % len(SEARCHES)
 
@@ -79,13 +79,13 @@ start_pos = get_start_pos(maze)
 res = 0
 
 start = process_time()
-for y, row in enumerate(maze):
-    for x, _ in enumerate(row):
-        point = (y, x)
-        if match_point(maze, point, OBSTACLE):
-            continue
-        if not walk_maze(start_pos, overrides={point: OBSTACLE}):
-            res += 1
+left_maze, patrol_route = walk_maze(start_pos)
+assert left_maze
+patrol_route.remove(start_pos)
+for y, x in patrol_route:
+    point = (y, x)
+    if not walk_maze(start_pos, overrides={point: OBSTACLE})[0]:
+        res += 1
 end = process_time()
 print(res)
 print(f"Took: {end-start}s")
