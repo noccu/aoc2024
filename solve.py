@@ -5,7 +5,7 @@ from importlib import import_module
 if len(argv) == 3:
     day = argv[1]
     part = argv[2]
-    print(f"Result of day {day}, part {part}:")
+    print(f"Result of day {day}, part {"1 & 2" if part == "0" else part}:")
     day_dir = f"day_{day}"
     chdir(day_dir)
     try:
