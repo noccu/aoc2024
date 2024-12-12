@@ -8,4 +8,7 @@ if len(argv) == 3:
     print(f"Result of day {day}, part {part}:")
     day_dir = f"day_{day}"
     chdir(day_dir)
-    import_module(f"{day_dir}.part{part}")
+    try:
+        import_module(f"{day_dir}.part{part}")
+    except ImportError:
+        print("That part doesn't exist!")
