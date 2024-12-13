@@ -1,19 +1,12 @@
-from common.grids import Grid, NodeUndirected, Point
+from common.grids import Grid, Point
 
 
 def get_input():
-    with open("input.txt", "r") as f:
-        return Grid.parseToType(NodeUndirected, f)
+    with open("test_input.txt", "r") as f:
+        return Grid.parseFromTextFile(f)
 
 
-def build_graph(grid: Grid):
-    for p, val in grid.walk():
-        for p in grid.neighbors(p):
-            n_val = grid.get(p)
-            val.link(n_val)
-
-
-def calc(grid: Grid):
+def calc(grid: Grid[str]):
     visited = set()
     cost = 0
     for cur_pt, cur_node in grid.walk():
@@ -23,25 +16,22 @@ def calc(grid: Grid):
         region = find_region(grid, cur_pt, cur_node, visited)
         perim = 0
         for n in region:
-            e = tuple(filter(lambda x: x in region, n.links))
-            perim += 4 - len(e)
-        # print(f"Region {n.value}: perim {perim}, cost: {perim * len(region)}")
+            perim += sum(1 for n in grid.unsafe_neighbors(n) if n not in region)
+        # print(f"Region {cur_node}: perim {perim}, cost: {perim * len(region)}")
         cost += perim * len(region)
     return cost
 
 
-def find_region(grid: Grid, cur_pt: Point, cur_node:NodeUndirected, visited:set):
-    region = [cur_node]
+def find_region(grid: Grid[str], cur_pt: Point, region_name: str, visited: set):
+    region = [cur_pt]
     for neighbor_pt in grid.neighbors(cur_pt):
-        neighbor_node = grid.get(neighbor_pt)
-        if neighbor_node.value != cur_node.value or neighbor_pt in visited:
+        neighbor_region_name = grid.get(neighbor_pt)
+        if neighbor_region_name != region_name or neighbor_pt in visited:
             continue
         visited.add(neighbor_pt)
-        region.extend(find_region(grid, neighbor_pt, neighbor_node, visited))
+        region.extend(find_region(grid, neighbor_pt, neighbor_region_name, visited))
     return region
 
 
 grid = get_input()
-build_graph(grid)
 print(calc(grid))
-# print(grid)
