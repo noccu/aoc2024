@@ -1,8 +1,6 @@
 from .points import Point
-from collections.abc import Iterator
-from .graphs import NodeUndirected
-from typing import Self
-from dataclasses import dataclass, field
+from collections.abc import Iterator, Iterable, Callable
+from typing import TextIO
 # from collections import deque
 
 
@@ -45,23 +43,27 @@ class DirectionsCardinal:
             yield cls.LIST[i]
 
 
-class Grid:
-    def __init__(self, grid: list):
-        self.grid = grid
-        self.w = len(grid[0])
-        self.h = len(grid)
+type GridInput[T] = Iterable[Iterable[T]]
+type TypeConstructor[T] = Callable[..., T]
+
+
+class Grid[T]:
+    def __init__(self, grid: GridInput[T]):
+        self.grid = [list(row) for row in grid]
+        self.w = len(self.grid[0])
+        self.h = len(self.grid)
 
     def is_valid_coord(self, p: Point):
         if not len(self.grid):
             return False
         return 0 <= p.x < len(self.grid[0]) and 0 <= p.y < len(self.grid)
 
-    def get(self, x: int | Point, y=None):
+    def get(self, x: int | Point, y: int = None):
         if isinstance(x, Point):
             return self.grid[x.y][x.x]
         return self.grid[y][x]
 
-    def set(self, val, x: int | Point, y=None):
+    def set(self, val, x: int | Point, y: int = None):
         if isinstance(x, Point):
             self.grid[x.y][x.x] = val
         else:
@@ -69,7 +71,7 @@ class Grid:
         return val
 
     def neighbors(self, pt: Point) -> Iterator[Point]:
-        return filter(self.is_valid_coord, (pt + p for p in DirectionsCardinal.iter()))
+        return filter(self.is_valid_coord, self.unsafe_neighbors(pt))
 
     def unsafe_neighbors(self, pt: Point) -> Iterator[Point]:
         return (pt + p for p in DirectionsCardinal.iter())
@@ -79,41 +81,15 @@ class Grid:
             for x, val in enumerate(row):
                 yield Point(x, y), val
 
-    # def bfs_pt(self, root: Point, max=None):
-    #     q: deque[Point] = deque((root), max)
-    #     visited = set()  # fast
-    #     path = list()  # ordered
-    #     point = root
-    #     while q:
-    #         point = q.popleft()
-    #         visited.add(point)
-    #         path.append(point)
-    #         yield point
-    #         for neighbor in self.neighbors(point):
-    #             if neighbor not in visited:
-    #                 q.append(neighbor)
-    #     return point, path
-
-    # def bfs(root: Node, f_valid, f_target, max=None):
-    #     q: deque[Node] = deque((root), max)
-    #     visited = set()
-    #     while q:
-    #         node = q.popleft()
-    #         if f_target(node):
-    #             break
-    #         visited.add(node)
-    #         for c in node.children:
-    #             if c not in visited and f_valid(root, node):
-    #                 q.append(c)
+    @classmethod
+    def parse[I, T](cls, txt: GridInput[I], toType: TypeConstructor[T] | None = None) -> "Grid[T|I]":
+        if toType is None:
+            return cls(txt)
+        return cls(map(toType, l) for l in txt)
 
     @classmethod
-    def parseStr(cls, txt):
-        return cls([list(l.strip()) for l in txt])
+    def parseFromTextFile[T](cls, f: TextIO, toType: TypeConstructor[T] | None = None):
+        return cls.parse((l.strip() for l in f), toType)
 
-    @classmethod
-    def parseInt(cls, txt):
-        return cls([list(map(int, l.strip())) for l in txt])
-
-    @classmethod
-    def parseToType(cls, t, txt):
-        return cls([list(map(t, l.strip())) for l in txt])
+    def __repr__(self):
+        return "\n".join(str(row) for row in self.grid)
