@@ -1,5 +1,13 @@
 from dataclasses import dataclass, field
-from typing import Self
+from typing import Self, Iterable
+
+
+class NodeBase:
+    def __init__(self, value):
+        self.value = value
+
+    def __repr__(self):
+        return str(self.value)
 
 
 @dataclass
@@ -47,3 +55,18 @@ class NodeDeg2:
         n_prev = getattr(self.parent, "value", "None")
         n_next = getattr(self.child, "value", "None")
         return f"[Node {self.value}, prev: {n_prev}, next: {n_next}]"
+
+
+class NodeUndirected(NodeBase):
+    def __init__(self, value, neighbors: Iterable = None):
+        super().__init__(value)
+        self.links: set[Self] = set(neighbors) if neighbors else set()
+
+    def link(self, node: Self):
+        self.links.add(node)
+        node.links.add(self)
+        return node
+
+    def unlink(self, node: Self):
+        self.links.remove(node)
+        node.links.remove(self)
