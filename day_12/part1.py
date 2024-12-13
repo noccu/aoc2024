@@ -1,18 +1,16 @@
-from common.grids import Grid, GridCel, DirectionsCardinal, Point
-
-TEST_RESULT_1 = 140
+from common.grids import Grid, NodeUndirected, Point
 
 
 def get_input():
     with open("input.txt", "r") as f:
-        return Grid.parseToType(GridCel, f)
+        return Grid.parseToType(NodeUndirected, f)
 
 
 def build_graph(grid: Grid):
     for p, val in grid.walk():
         for p in grid.neighbors(p):
             n_val = grid.get(p)
-            val.addChild(n_val)
+            val.link(n_val)
 
 
 def calc(grid: Grid):
@@ -25,15 +23,14 @@ def calc(grid: Grid):
         region = find_region(grid, cur_pt, cur_node, visited)
         perim = 0
         for n in region:
-            e = tuple(filter(lambda x: x in region, n.children))
+            e = tuple(filter(lambda x: x in region, n.links))
             perim += 4 - len(e)
-        #     print(f"Ignoring {e}")
         # print(f"Region {n.value}: perim {perim}, cost: {perim * len(region)}")
         cost += perim * len(region)
     return cost
 
 
-def find_region(grid: Grid, cur_pt: Point, cur_node:GridCel, visited:set):
+def find_region(grid: Grid, cur_pt: Point, cur_node:NodeUndirected, visited:set):
     region = [cur_node]
     for neighbor_pt in grid.neighbors(cur_pt):
         neighbor_node = grid.get(neighbor_pt)

@@ -1,18 +1,18 @@
-from common.grids import Grid, GridCel, DirectionsCardinal, Point, DirectionsDiagonal
+from common.grids import Grid, NodeUndirected, DirectionsCardinal, Point, DirectionsDiagonal
 
 TEST_RESULT_1 = 140
 
 
 def get_input():
     with open("input.txt", "r") as f:
-        return Grid.parseToType(GridCel, f)
+        return Grid.parseToType(NodeUndirected, f)
 
 
 def build_graph(grid: Grid):
     for p, val in grid.walk():
         for p in grid.neighbors(p):
             n_val = grid.get(p)
-            val.addChild(n_val)
+            val.link(n_val)
 
 
 def calc(grid: Grid):
@@ -50,7 +50,7 @@ def calc(grid: Grid):
     return cost
 
 
-def wall_walk(grid: Grid, region: dict[Point, GridCel], start_pt):
+def wall_walk(grid: Grid, region: dict[Point, NodeUndirected], start_pt):
     start_dir = DirectionsCardinal.UP
     cur_pt = start_pt
     cur_dir = start_dir
@@ -106,7 +106,7 @@ def wall_walk(grid: Grid, region: dict[Point, GridCel], start_pt):
     return walls, surrounding_region
 
 
-def find_region(grid: Grid, cur_pt: Point, cur_node: GridCel, visited: set):
+def find_region(grid: Grid, cur_pt: Point, cur_node: NodeUndirected, visited: set):
     region = {cur_pt: cur_node}
     for neighbor_pt in grid.neighbors(cur_pt):
         neighbor_node = grid.get(neighbor_pt)

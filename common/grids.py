@@ -1,5 +1,6 @@
 from .points import Point
 from collections.abc import Iterator
+from .graphs import NodeUndirected
 from typing import Self
 from dataclasses import dataclass, field
 # from collections import deque
@@ -116,29 +117,3 @@ class Grid:
     @classmethod
     def parseToType(cls, t, txt):
         return cls([list(map(t, l.strip())) for l in txt])
-
-
-@dataclass
-class GridCel:
-    value: any
-    parents: list[Self] = field(init=False, default_factory=list)
-    children: list[Self] = field(init=False, default_factory=list)
-
-    def addChild(self, node: Self):
-        for n in self.children:
-            n.parents.append(self)
-        self.children.append(node)
-        return node
-
-    def addParent(self, node: Self):
-        for n in self.parents:
-            n.children.append(self)
-        self.parents.append(node)
-        return node
-
-    # def delete(self):
-    #     self.children.remove(self)
-    #     self.parents.remove(self)
-
-    def __repr__(self):
-        return f"[Node {self.value}]"
